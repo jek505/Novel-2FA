@@ -1,0 +1,21 @@
+<nav class="navbar">
+  <div class="container nav-container">
+    <div class="logo">
+      <a href="/"> <%= appName %> </a>
+    </div>
+    <ul class="nav-links">
+      <li><a href="/novels">Novel</a></li>
+      <% if (user) { %>
+        <li><a href="/novels/new/form">Tambah Novel</a></li>
+        <li>
+          <form action="/auth/logout" method="post">
+            <button type="submit" class="btn-logout">Logout</button>
+          </form>
+        </li>
+      <% } else { %>
+        <li><a href="/auth/login">Masuk</a></li>
+        <li><a href="/auth/register" class="btn">Daftar</a></li>
+      <% } %>
+    </ul>
+  </div>
+</nav>

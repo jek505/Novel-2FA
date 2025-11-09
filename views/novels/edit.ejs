@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit: <%= novel.title %> | <%= appName %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <%- include('../partials/nav') %>
+
+  <div class="container mt-4 auth-container">
+    <%- include('../partials/messages') %>
+    <h1>Edit Novel</h1>
+
+    <form action="/novels/<%= novel._id %>/update" method="post"
+          enctype="multipart/form-data" class="form">
+
+      <div class="form-group">
+        <label>Judul</label>
+        <input type="text" name="title" value="<%= novel.title %>" required />
+      </div>
+
+      <div class="form-group">
+        <label>Penulis</label>
+        <input type="text" name="author" value="<%= novel.author %>" required />
+      </div>
+
+      <div class="form-group">
+        <label>Deskripsi</label>
+        <textarea name="description" rows="4"><%= novel.description %></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Isi (opsional)</label>
+        <textarea name="content" rows="8"><%= novel.content || '' %></textarea>
+      </div>
+
+      <% if (novel.coverUrl) { %>
+        <div class="form-group">
+          <label>Sampul saat ini</label>
+          <img src="<%= novel.coverUrl %>" alt="Sampul" style="max-width:200px;border-radius:8px" />
+        </div>
+      <% } %>
+
+      <div class="form-group">
+        <label>Upload Sampul Baru (opsional)</label>
+        <input type="file" name="cover" accept="image/*" />
+      </div>
+
+      <div class="form-group">
+        <label>Atau Link Sampul (opsional)</label>
+        <input type="url" name="coverUrl" value="<%= novel.coverUrl %>" placeholder="https://..." />
+      </div>
+
+      <div class="btn-group vertical">
+        <button type="submit" class="btn">Simpan Perubahan</button>
+
+        <form action="/novels/<%= novel._id %>/delete" method="post"
+              onsubmit="return confirm('Yakin ingin menghapus novel ini?');">
+          <button type="submit" class="btn danger">Hapus Novel</button>
+        </form>
+
+        <a href="/novels/<%= novel._id %>" class="btn secondary">Kembali</a>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

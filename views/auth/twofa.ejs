@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> | <%= appName %></title>
+    <link rel="stylesheet" href="/css/style.css">
+  </head>
+  <body>
+    <%- include('../partials/nav') %>
+    <div class="container mt-4">
+      <%- include('../partials/messages') %>
+      <h1>Pengaturan Autentikasi Dua Langkah</h1>
+      <% if (user && user.twoFA && user.twoFA.enabled) { %>
+        <p>2FA saat ini <strong>AKTIF</strong>.</p>
+        <form action="/2fa/disable" method="post">
+          <button type="submit" class="btn-logout">Nonaktifkan 2FA</button>
+        </form>
+      <% } else { %>
+        <p>2FA saat ini <strong>TIDAK AKTIF</strong>.</p>
+        <a href="/2fa/setup" class="btn">Aktifkan Sekarang</a>
+      <% } %>
+    </div>
+  </body>
+</html>

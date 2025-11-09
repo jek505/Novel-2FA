@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> | <%= appName %></title>
+    <link rel="stylesheet" href="/css/style.css">
+  </head>
+  <body>
+    <%- include('../partials/nav') %>
+    <div class="container mt-4 auth-container">
+      <%- include('../partials/messages') %>
+
+      <h1>Verifikasi Dua Langkah</h1>
+
+      <% if (typeof qrDataUrl !== 'undefined' && qrDataUrl) { %>
+        <p class="muted">Scan QR ini jika Anda baru ganti perangkat authenticator. Lalu masukkan kode 6 digit di bawah.</p>
+        <div class="qr-container">
+          <img src="<%= qrDataUrl %>" alt="QR Code untuk 2FA" />
+        </div>
+      <% } %>
+
+      <form method="post" action="/2fa/verify" class="form">
+        <label for="token">Kode 6 digit</label>
+        <input
+          type="text"
+          id="token"
+          name="token"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          pattern="[0-9]{6}"
+          maxlength="6"
+          required
+        />
+        <button class="btn" type="submit">Verifikasi</button>
+      </form>
+    </div>
+  </body>
+</html>

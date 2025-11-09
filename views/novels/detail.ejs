@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= novel.title %> | <%= appName %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <%- include('../partials/nav') %>
+
+  <div class="container mt-4">
+    <%- include('../partials/messages') %>
+    <div class="novel-container">
+      <img
+        src="<%= novel.coverUrl || '/images/default-cover.jpg' %>"
+        alt="Sampul <%= novel.title %>"
+        class="novel-cover"
+        onerror="this.onerror=null;this.src='/images/default-cover.jpg';"
+      />
+
+      <h1><%= novel.title %></h1>
+      <p class="muted">
+        Oleh <strong><%= novel.author %></strong> •
+        <%= novel.createdAt.toLocaleDateString('id-ID') %>
+      </p>
+
+      <% if (novel.description) { %>
+        <p><%= novel.description %></p>
+      <% } %>
+
+      <% if (novel.content) { %>
+        <div class="content">
+          <h3>Isi Novel</h3>
+          <p><%= novel.content %></p>
+        </div>
+      <% } %>
+
+      <div class="btn-group">
+        <a href="/novels/<%= novel._id %>/edit" class="btn">Edit</a>
+        <form action="/novels/<%= novel._id %>/delete" method="post"
+              onsubmit="return confirm('Yakin ingin menghapus novel ini?');">
+          <button type="submit" class="btn danger">Hapus</button>
+        </form>
+        <a href="/novels" class="btn secondary">Kembali</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

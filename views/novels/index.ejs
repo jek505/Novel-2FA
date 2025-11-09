@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %> | <%= appName %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <%- include('../partials/nav') %>
+
+  <div class="page-header">
+    <h1>Daftar Novel</h1>
+    <a href="/novels/new/form" class="btn gradient">+ Tambah Novel</a>
+  </div>
+
+  <%- include('../partials/messages') %>
+
+  <% if (novels && novels.length) { %>
+    <div class="grid">
+      <% novels.forEach(novel => { %>
+        <article class="card">
+          <img
+            src="<%= novel.coverUrl || '/images/default-cover.jpg' %>"
+            alt="Sampul <%= novel.title %>"
+            class="cover"
+            onerror="this.onerror=null;this.src='/images/default-cover.jpg';"
+          />
+          <div class="card-body">
+            <h2 class="title">
+              <a href="/novels/<%= novel._id %>" style="color:inherit"><%= novel.title %></a>
+            </h2>
+            <div class="meta">
+              Oleh <%= novel.author %> • <%= novel.createdAt.toLocaleDateString('id-ID') %>
+            </div>
+            <div class="desc">
+              <%= (novel.description || '').length > 150
+                  ? novel.description.substring(0, 150) + '...'
+                  : (novel.description || '') %>
+            </div>
+            <div class="actions">
+              <a class="btn" href="/novels/<%= novel._id %>">Detail</a>
+              <a class="btn secondary" href="/novels/<%= novel._id %>/edit">Edit</a>
+              <form action="/novels/<%= novel._id %>/delete" method="post"
+                    onsubmit="return confirm('Yakin ingin menghapus novel ini?');">
+                <button type="submit" class="btn danger">Hapus</button>
+              </form>
+            </div>
+          </div>
+        </article>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <p class="empty">Belum ada novel. Klik <strong>Tambah Novel</strong> untuk membuat yang pertama.</p>
+  <% } %>
+</body>
+</html>
