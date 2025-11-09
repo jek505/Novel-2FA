@@ -1,60 +1,80 @@
-const path = require('path');
 const express = require('express');
+const mongoose = require('mongoose');
 const session = require('express-session');
-const flash = require('connect-flash');
 const passport = require('passport');
-require('dotenv').config();
-require('./models/User');
-require('./models/Novel'); // <- pastikan ada
-require('./config/passport')(passport);
+const flash = require('connect-flash');
+const path = require('path');
+const dotenv = require('dotenv');
+const MongoStore = require('connect-mongo');
 
+// ====== CONFIGURASI DASAR ======
+dotenv.config();
 const app = express();
 
-// Body parser
+// ====== VIEW ENGINE ======
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// ====== MIDDLEWARE UMUM ======
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
-// Static (penting untuk /uploads dan /images)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Session & flash
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'secret',
-  resave: false,
-  saveUninitialized: false
-}));
+// ====== SESSION & FLASH ======
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'secret_key',
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGODB_URI,
+      collectionName: 'sessions'
+    }),
+  })
+);
 app.use(flash());
 
-// Passport
+// ====== PASSPORT CONFIG (anti error) ======
+const passportCfg = require('./config/passport');
+if (typeof passportCfg === 'function') {
+  passportCfg(passport);
+} else {
+  console.log('[passport] config loaded (non-callable export)');
+}
+
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Globals (untuk EJS)
+// ====== GLOBAL VARS UNTUK FLASH MESSAGE ======
 app.use((req, res, next) => {
-  res.locals.appName = process.env.APP_NAME || 'Novelku';
-  res.locals.user = req.user;
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
+  res.locals.user = req.user || null;
   next();
 });
 
-// EJS helper
-app.response.renderView = function(view, data = {}) {
+// ====== CUSTOM renderView() ======
+app.response.renderView = function (view, data = {}) {
   return this.render(view, data);
 };
 
-// Routes
+// ====== ROUTES ======
+app.use('/', require('./routes/index'));
+app.use('/auth', require('./routes/auth'));
 app.use('/novels', require('./routes/novels'));
-app.use('/', require('./routes/auth')); // kalau ada auth
+app.use('/2fa', require('./routes/twofa'));
 
-// 404
-app.use((req, res) => res.status(404).renderView('404', { title: '404' }));
+// ====== HEALTH CHECK ======
+app.get('/health', (req, res) => res.send('OK'));
 
+// ====== ERROR 404 FALLBACK ======
+app.use((req, res) => res.status(404).render('404', { title: 'Halaman Tidak Ditemukan' }));
+
+// ====== SERVER EXPORT UNTUK VERCEL ======
 const PORT = process.env.PORT || 3000;
 
-// Saat di Vercel, export app saja
 if (process.env.VERCEL) {
-  module.exports = app;
+  module.exports = app; // penting agar bisa jalan di Vercel
 } else {
-  app.listen(PORT, () => console.log(`Running at http://localhost:${PORT}`));
+  app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));
 }
