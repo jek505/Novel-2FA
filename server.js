@@ -7,57 +7,77 @@ const path = require('path');
 const dotenv = require('dotenv');
 const MongoStore = require('connect-mongo');
 
+// Load ENV
 dotenv.config();
+
+// Inisialisasi App
 const app = express();
 
-// ====== KONEKSI MONGODB ======
-if (!process.env.MONGODB_URI) {
-  console.error('Missing MONGODB_URI');
+// ====== FIX: hapus pemanggilan require() yang bukan function ======
+try {
+  const passportConfig = require('./config/passport');
+  if (typeof passportConfig === 'function') {
+    passportConfig(passport);
+  } else {
+    console.log('[INFO] Passport config loaded as non-function.');
+  }
+} catch (err) {
+  console.error('[ERROR] Cannot load passport config:', err.message);
 }
-mongoose.connect(process.env.MONGODB_URI, {
-  // opsi default modern mongoose sudah oke
-}).then(() => console.log('Mongo connected'))
-  .catch(err => console.error('Mongo error', err.message));
 
-// ====== REGISTER MODEL DULU (PENTING) ======
+try {
+  const renderConfig = require('./config/render');
+  if (typeof renderConfig === 'function') {
+    renderConfig(app);
+  } else {
+    console.log('[INFO] Render config loaded as non-function.');
+  }
+} catch {
+  app.response.renderView = function (view, data = {}) {
+    return this.render(view, data);
+  };
+}
+
+// ====== MONGOOSE ======
+if (!process.env.MONGODB_URI) {
+  console.error('Missing MONGODB_URI!');
+}
+mongoose.connect(process.env.MONGODB_URI, {})
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.error('MongoDB Error:', err.message));
+
+// ====== REGISTER MODEL ======
 require('./models/User');
 require('./models/Novel');
 
-// ====== VIEW ENGINE & STATIC ======
+// ====== MIDDLEWARE ======
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ====== SESSION, FLASH, PASSPORT ======
+// SESSION
 app.use(session({
   secret: process.env.SESSION_SECRET || 'secret_key',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
     mongoUrl: process.env.MONGODB_URI,
-    collectionName: 'sessions',
+    collectionName: 'sessions'
   }),
 }));
 app.use(flash());
-
-// CONFIGURE PASSPORT SETELAH MODEL TEREGISTER
-const passportCfg = require('./config/passport');
-if (typeof passportCfg === 'function') {
-  passportCfg(passport);
-}
 app.use(passport.initialize());
 app.use(passport.session());
 
-// GLOBALS & HELPER
+// GLOBAL FLASH & USER
 app.use((req, res, next) => {
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
   res.locals.user = req.user || null;
   next();
 });
-app.response.renderView = function(view, data = {}) { return this.render(view, data); };
 
 // ROUTES
 app.use('/', require('./routes/index'));
@@ -65,16 +85,16 @@ app.use('/auth', require('./routes/auth'));
 app.use('/novels', require('./routes/novels'));
 app.use('/2fa', require('./routes/twofa'));
 
-// HEALTH
+// HEALTH CHECK
 app.get('/health', (req, res) => res.send('OK'));
 
-// 404
+// 404 FALLBACK
 app.use((req, res) => res.status(404).render('404', { title: '404' }));
 
-// EXPORT UNTUK VERCEL
+// ====== EXPORT UNTUK VERCEL ======
 const PORT = process.env.PORT || 3000;
 if (process.env.VERCEL) {
   module.exports = app;
 } else {
-  app.listen(PORT, () => console.log(`✅ http://localhost:${PORT}`));
+  app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));
 }
