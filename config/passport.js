@@ -1,15 +1,15 @@
+// config/passport.js
 const LocalStrategy = require('passport-local').Strategy;
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 module.exports = (passport) => {
-  // Pastikan model User terdaftar
+  // Pastikan model "User" sudah ada; bila belum, require dulu
   let User;
   try {
     User = mongoose.model('User');
-  } catch (e) {
-    // Jika belum terdaftar, require file model lalu ambil lagi
-    require('../models/User');
+  } catch {
+    require('../models/User');            // daftar model
     User = mongoose.model('User');
   }
 
@@ -30,11 +30,10 @@ module.exports = (passport) => {
   );
 
   passport.serializeUser((user, done) => done(null, user.id));
-
   passport.deserializeUser(async (id, done) => {
     try {
-      const u = await User.findById(id);
-      done(null, u);
+      const user = await mongoose.model('User').findById(id);
+      done(null, user);
     } catch (err) {
       done(err);
     }
