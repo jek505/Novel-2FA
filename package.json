@@ -4,7 +4,7 @@
   "description": "Simple novel website with login and 2FA using Node, Express, MongoDB",
   "main": "server.js",
   "type": "commonjs",
-  "engines": { "node": "18.x" },
+  "engines": { "node": "22.x" },
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"
