@@ -13,30 +13,41 @@ dotenv.config();
 // Inisialisasi App
 const app = express();
 
-// ====== FIX: hapus pemanggilan require() yang bukan function ======
+// ====== PASSPORT CONFIG ======
+// (File config/passport.js Anda sudah benar, jadi ini tidak perlu diubah)
 try {
   const passportConfig = require('./config/passport');
   if (typeof passportConfig === 'function') {
     passportConfig(passport);
   } else {
-    console.log('[INFO] Passport config loaded as non-function.');
+    console.log('[INFO] Passport config dimuat sebagai non-function.');
   }
 } catch (err) {
-  console.error('[ERROR] Cannot load passport config:', err.message);
+  console.error('[ERROR] Tidak bisa memuat config passport:', err.message);
 }
 
+// ====== RENDER HELPER (FIXED) ======
+// Menggunakan destructuring { attachRender } untuk mengambil fungsi dari objek
 try {
-  const renderConfig = require('./config/render');
-  if (typeof renderConfig === 'function') {
-    renderConfig(app);
+  const { attachRender } = require('./config/render');
+  
+  if (typeof attachRender === 'function') {
+    attachRender(app); // Memanggil fungsi yang benar
   } else {
-    console.log('[INFO] Render config loaded as non-function.');
+    console.error('[ERROR] Fungsi attachRender tidak ditemukan di config/render.js');
+    // Fallback jika gagal
+    app.response.renderView = function (view, data = {}) {
+      return this.render(view, data);
+    };
   }
-} catch {
+} catch (err) {
+  console.error('[ERROR] Gagal memuat render config:', err.message);
+  // Fallback jika gagal total
   app.response.renderView = function (view, data = {}) {
     return this.render(view, data);
   };
 }
+
 
 // ====== MONGOOSE ======
 if (!process.env.MONGODB_URI) {
