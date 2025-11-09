@@ -51,4 +51,10 @@ app.use('/', require('./routes/auth')); // kalau ada auth
 app.use((req, res) => res.status(404).renderView('404', { title: '404' }));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Running at http://localhost:${PORT}`));
+
+// Saat di Vercel, export app saja
+if (process.env.VERCEL) {
+  module.exports = app;
+} else {
+  app.listen(PORT, () => console.log(`Running at http://localhost:${PORT}`));
+}
